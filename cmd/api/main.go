@@ -1,6 +1,7 @@
 package main
 
 import (
+	"auth/config"
 	"context"
 	"errors"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-	"auth/config"
+
 	"auth/db"
 )
 
@@ -20,6 +21,7 @@ func main() {
 		slog.Error("API stopped", "error", err)
 		os.Exit(1)
 	}
+
 }
 
 func run() error {

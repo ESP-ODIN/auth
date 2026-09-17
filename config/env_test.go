@@ -34,5 +34,5 @@ func TestLoadDatabaseURL(t *testing.T) {
 	t.Setenv("DATABASE_URL", "")
 	if _, err := Load(); err == nil {
 		t.Fatal("expected error when DATABASE_URL is missing")
-	}	
+	}
 }
