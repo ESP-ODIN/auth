@@ -8,7 +8,8 @@ import (
 )
 
 type Config struct {
-	HTTPAddr string
+	DatabaseURL string
+	HTTPAddr    string
 }
 
 func Load() (Config, error) {
@@ -24,5 +25,9 @@ func Load() (Config, error) {
 	if err != nil || n < 1 || n > 65535 {
 		return Config{}, fmt.Errorf("HTTP_ADDR port must be between 1 and 65535")
 	}
-	return Config{HTTPAddr: addr}, nil
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		return Config{}, fmt.Errorf("DATABASE_URL is required")
+	}
+	return Config{DatabaseURL: dbURL, HTTPAddr: addr}, nil
 }

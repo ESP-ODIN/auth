@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"syscall"
 	"time"
 	"auth/config"
+	"auth/db"
 )
 
 func main() {
@@ -27,6 +29,14 @@ func run() error {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	pool, err := db.New(ctx, cfg.DatabaseURL)
+	if err != nil {
+		return fmt.Errorf("connect to database: %w", err)
+	}
+	defer pool.Close()
+	slog.Info("connected to database")
+
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,
 		Handler:           routes(),
