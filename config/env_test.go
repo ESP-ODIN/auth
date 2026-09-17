@@ -17,6 +17,7 @@ func TestLoad(t *testing.T) {
 	} {
 		t.Run(tc.value, func(t *testing.T) {
 			t.Setenv("HTTP_ADDR", tc.value)
+			t.Setenv("DATABASE_URL", "postgres://user:pass@localhost:5432/db")
 			cfg, err := Load()
 			if (err != nil) != tc.invalid {
 				t.Fatalf("Load error = %v, invalid = %v", err, tc.invalid)
@@ -26,4 +27,12 @@ func TestLoad(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestLoadDatabaseURL(t *testing.T) {
+	t.Setenv("HTTP_ADDR", "127.0.0.1:8080")
+	t.Setenv("DATABASE_URL", "")
+	if _, err := Load(); err == nil {
+		t.Fatal("expected error when DATABASE_URL is missing")
+	}	
 }
