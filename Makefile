@@ -1,5 +1,6 @@
-.PHONY: run build test vet fmt
 .PHONY: run build test vet fmt docker-build docker-dev
+
+-include .env
 
 run:
 	go run ./cmd/api
@@ -21,7 +22,7 @@ docker-build:
 
 docker-dev:
 	docker run --rm -it \
-		-p 8090:8080 \
+		-p $(PORT):8080 \
 		--env-file .env \
 		-e HTTP_ADDR=0.0.0.0:8080 \
 		-v "$(PWD)":/app \

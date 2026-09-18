@@ -34,11 +34,11 @@
 
 ### Environment Setup
 
-1. At the root of the project, duplicate the example file to create your local `.env` file[cite: 1]:
+1. At the root of the project, duplicate the example file to create your local `.env` file:
    ```bash
    cp .env.exemple .env
+   ```
 
-  
 ## Docker
 
 A development `Dockerfile` runs the API with hot-reload (via [air](https://github.com/air-verse/air)),
@@ -51,12 +51,14 @@ Build the image:
 make docker-build
 ```
 
-Run it locally with hot-reload (mounts the source code and exposes the app on port 8090):
+Run it locally with hot-reload (mounts the source code and exposes the app on the host port set by
+`PORT` in `.env`, `8091` by default):
 
 ```sh
 make docker-dev
 ```
 
-Then check it with `curl http://127.0.0.1:8090/health`. Editing any `.go` file rebuilds and restarts
-the server automatically inside the container. The container itself listens on `0.0.0.0:8080`
-(overridden from `.env`'s `HTTP_ADDR` by the `docker-dev` target); only the host-side port is `8090`.
+Then check it with `curl http://127.0.0.1:8091/health`. Editing any `.go` file rebuilds and restarts
+the server automatically inside the container. The container itself always listens on `0.0.0.0:8080`
+(overridden from `.env`'s `HTTP_ADDR` by the `docker-dev` target); only the host-side port, read from
+`PORT` in `.env`, changes.
