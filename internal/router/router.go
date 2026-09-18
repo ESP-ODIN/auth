@@ -7,12 +7,13 @@ import (
 
 func SetupRouter(
 	registerHandler *handler.RegisterHandler,
+	rateLimiter gin.HandlerFunc,
 ) *gin.Engine {
 	r := gin.Default()
 
 	api := r.Group("/api/v1/auth")
 	{
-		api.POST("/register", registerHandler.Handle)
+		api.POST("/register", rateLimiter, registerHandler.Handle)
 	}
 
 	return r

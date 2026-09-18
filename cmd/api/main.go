@@ -2,9 +2,11 @@ package main
 
 import (
 	"auth/config"
+	"auth/db"
 	"context"
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"log/slog"
 	"net"
 	"net/http"
@@ -12,11 +14,10 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	"auth/db"
 )
 
 func main() {
+	godotenv.Load()
 	if err := run(); err != nil {
 		slog.Error("API stopped", "error", err)
 		os.Exit(1)
@@ -41,7 +42,7 @@ func run() error {
 
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,
-		Handler:           routes(),
+		Handler:           routes(pool),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,

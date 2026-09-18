@@ -1,11 +1,11 @@
 package repository
 
-import model "auth/internal/model"
+import (
+	"auth/internal/model"
+	"context"
+)
 
-type UserRepo interface {
-	Create(user *model.User) error
-	GetByID(id string) (*model.User, error)
-	GetByEmail(email string) (*model.User, error)
-	Update(user *model.User) error
-	Delete(id string) error
+type UserRepository interface {
+	Create(ctx context.Context, user *model.User) error
+	ExistsByEmail(ctx context.Context, email string) (bool, error)
 }
