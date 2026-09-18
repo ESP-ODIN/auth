@@ -9,16 +9,16 @@ import (
 )
 
 type Claims struct {
-	ID       uuid.UUID `json:"id"`
-	Username string    `json:"username"`
-	jwt.Claims
+	ID    uuid.UUID `json:"id"`
+	Email string    `json:"email"`
+	jwt.RegisteredClaims
 }
 
-func GenerateJWT(id uuid.UUID, username string, secretKey []byte) (string, error) {
+func GenerateJWT(id uuid.UUID, email string, secretKey []byte) (string, error) {
 	claims := Claims{
-		ID:       id,
-		Username: username,
-		Claims: jwt.RegisteredClaims{
+		ID:    id,
+		Email: email,
+		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
 		},
 	}
