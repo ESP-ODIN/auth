@@ -1,13 +1,25 @@
 package main
 
-import "net/http"
+import (
+	"auth/internal/handler"
+	"auth/internal/middleware"
+	repoImpl "auth/internal/repository/implementation"
+	"auth/internal/router"
+	svcImpl "auth/internal/service/implementation"
+	"net/http"
+	"time"
 
-func routes() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /name", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"message": "User name retrieved successfully"}`))
-	})
-	return mux
+	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/time/rate"
+)
+
+func routes(db *pgxpool.Pool) http.Handler {
+	userRepo := repoImpl.NewUserRepository(db)
+	registerService := svcImpl.NewRegisterService(userRepo)
+	registerHandler := handler.NewRegisterHandler(registerService)
+
+	// Rate limiting: 1 request per second, burst of 5
+	rateLimiter := middleware.NewRateLimiter(rate.Every(1*time.Second), 5)
+
+	return router.SetupRouter(registerHandler, rateLimiter.Limit())
 }
