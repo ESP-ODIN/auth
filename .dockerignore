@@ -2,6 +2,10 @@
 .env
 .env.*
 !.env.exemple
+!.env.example
+secrets/
+*.pem
+*.key
 bin/
 tmp/
 coverage.out

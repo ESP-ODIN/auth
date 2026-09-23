@@ -6,6 +6,7 @@ import (
 	repoImpl "auth/internal/repository/implementation"
 	"auth/internal/router"
 	svcImpl "auth/internal/service/implementation"
+	"auth/internal/utils"
 	"net/http"
 	"time"
 
@@ -13,13 +14,13 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func routes(db *pgxpool.Pool) http.Handler {
+func routes(db *pgxpool.Pool, signer *utils.JWTSigner) http.Handler {
 	userRepo := repoImpl.NewUserRepository(db)
-	registerService := svcImpl.NewRegisterService(userRepo)
+	registerService := svcImpl.NewRegisterService(userRepo, signer)
 	registerHandler := handler.NewRegisterHandler(registerService)
 
 	// Rate limiting: 1 request per second, burst of 5
 	rateLimiter := middleware.NewRateLimiter(rate.Every(1*time.Second), 5)
 
-	return router.SetupRouter(registerHandler, rateLimiter.Limit())
+	return router.SetupRouter(registerHandler, rateLimiter.Limit(), handler.NewJWKSHandler(signer))
 }

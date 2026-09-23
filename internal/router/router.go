@@ -8,8 +8,10 @@ import (
 func SetupRouter(
 	registerHandler *handler.RegisterHandler,
 	rateLimiter gin.HandlerFunc,
+	jwksHandler gin.HandlerFunc,
 ) *gin.Engine {
 	r := gin.Default()
+	r.GET("/.well-known/jwks.json", jwksHandler)
 
 	api := r.Group("/api/v1/auth")
 	{
