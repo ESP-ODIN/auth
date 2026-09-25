@@ -3,6 +3,7 @@ package main
 import (
 	"auth/config"
 	"auth/db"
+	"auth/internal/utils"
 	"context"
 	"errors"
 	"fmt"
@@ -31,6 +32,11 @@ func run() error {
 		return err
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	signer, err := utils.LoadJWTSigner(cfg.JWTPrivateKeyPath, cfg.JWTKeyID, cfg.JWTIssuer, cfg.JWTAudience)
+	if err != nil {
+		stop()
+		return err
+	}
 	defer stop()
 
 	pool, err := db.New(ctx, cfg.DatabaseURL)
@@ -42,7 +48,7 @@ func run() error {
 
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,
-		Handler:           routes(pool),
+		Handler:           routes(pool, signer),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,

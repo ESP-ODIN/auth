@@ -7,8 +7,12 @@ import (
 	"auth/internal/dto"
 	"auth/internal/model"
 	"auth/internal/service"
+	"auth/internal/testutil"
+	"auth/internal/utils"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 // Mock du repository
@@ -28,7 +32,8 @@ func (m *MockUserRepo) ExistsByEmail(ctx context.Context, email string) (bool, e
 
 func TestRegisterService_Execute_Success(t *testing.T) {
 	mockRepo := new(MockUserRepo)
-	s := NewRegisterService(mockRepo)
+	signer, publicKey := testutil.Signer(t)
+	s := NewRegisterService(mockRepo, signer)
 
 	req := dto.RegisterRequest{
 		Email:    "test@example.com",
@@ -42,15 +47,21 @@ func TestRegisterService_Execute_Success(t *testing.T) {
 
 	user, err := s.Execute(context.Background(), req)
 
-	assert.NoError(t, err)
-	assert.NotNil(t, user)
+	require.NoError(t, err)
+	require.NotNil(t, user)
+	claims := &utils.Claims{}
+	_, err = jwt.ParseWithClaims(user.Token, claims, func(*jwt.Token) (any, error) { return publicKey, nil }, jwt.WithValidMethods([]string{"RS256"}))
+	require.NoError(t, err)
+	assert.Equal(t, user.User.ID, claims.ID)
+	assert.Equal(t, user.User.Email, claims.Email)
 	assert.Equal(t, req.Email, user.User.Email)
 	mockRepo.AssertExpectations(t)
 }
 
 func TestRegisterService_Execute_UserAlreadyExists(t *testing.T) {
 	mockRepo := new(MockUserRepo)
-	s := NewRegisterService(mockRepo)
+	signer, _ := testutil.Signer(t)
+	s := NewRegisterService(mockRepo, signer)
 
 	req := dto.RegisterRequest{
 		Email:    "existing@example.com",

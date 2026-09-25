@@ -1,6 +1,10 @@
 .env
 .env.*
 !.env.exemple
+!.env.example
+secrets/
+*.pem
+*.key
 .idea/
 bin/
 tmp/

@@ -15,7 +15,7 @@ vet:
 	go vet ./...
 
 fmt:
-	gofmt -w cmd config db
+	gofmt -w cmd config db internal migrate
 
 docker-build:
 	docker build -t auth-api .
@@ -25,6 +25,6 @@ docker-dev:
 		-p $(PORT):8080 \
 		--env-file .env \
 		-e HTTP_ADDR=0.0.0.0:8080 \
-		-v "$(PWD)":/app \
+		-v "$(CURDIR)":/app \
 		-v /app/tmp \
 		auth-api

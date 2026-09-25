@@ -2,7 +2,6 @@ package implementation
 
 import (
 	"context"
-	"os"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -17,11 +16,13 @@ import (
 
 type RegisterService struct {
 	userRepo repository.UserRepository
+	signer   *utils.JWTSigner
 }
 
-func NewRegisterService(userRepo repository.UserRepository) *RegisterService {
+func NewRegisterService(userRepo repository.UserRepository, signer *utils.JWTSigner) *RegisterService {
 	return &RegisterService{
 		userRepo: userRepo,
+		signer:   signer,
 	}
 }
 
@@ -56,8 +57,7 @@ func (s *RegisterService) Execute(ctx context.Context, req dto.RegisterRequest) 
 	}
 
 	// 5. Génération du JWT
-	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
-	token, err := utils.GenerateJWT(newUser.ID, newUser.Email, secretKey)
+	token, err := s.signer.GenerateJWT(newUser.ID, newUser.Email)
 	if err != nil {
 		return nil, err
 	}
