@@ -1,4 +1,4 @@
-.PHONY: run build test vet fmt docker-build docker-dev
+.PHONY: run build test vet fmt swagger docker-build docker-dev
 
 -include .env
 
@@ -28,3 +28,6 @@ docker-dev:
 		-v "$(CURDIR)":/app \
 		-v /app/tmp \
 		auth-api
+
+swagger:
+	go tool swag init -g cmd/api/main.go -o docs --parseInternal
