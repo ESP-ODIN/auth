@@ -2,8 +2,9 @@ package handler
 
 import (
 	"auth/internal/utils"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func NewJWKSHandler(signer *utils.JWTSigner) gin.HandlerFunc {

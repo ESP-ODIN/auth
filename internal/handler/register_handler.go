@@ -20,6 +20,17 @@ func NewRegisterHandler(registerService service.RegisterServiceInterface) *Regis
 	}
 }
 
+// @Summary Register a new user
+// @Description Register a new user
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.RegisterRequest true "User registration data"
+// @Success 201 {object} string "User registered successfully"
+// @Failure 400 {object} string "Bad request"
+// @Failure 409 {object} string "User already exists"
+// @Failure 500 {object} string "Internal server error"
+// @Router /api/v1/register [post]
 func (h *RegisterHandler) Handle(c *gin.Context) {
 	var req dto.RegisterRequest
 
