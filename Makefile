@@ -30,4 +30,4 @@ docker-dev:
 		auth-api
 
 swagger:
-	go tool swag init -g cmd/api/main.go -o docs --parseInternal
+	swag init -g cmd/api/main.go -o docs --parseInternal

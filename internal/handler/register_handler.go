@@ -1,12 +1,13 @@
 package handler
 
 import (
-	"errors"
-	"net/http"
-
 	"auth/internal/dto"
+	"auth/internal/errors"
 	"auth/internal/service"
 	"auth/internal/utils/http/response"
+	stdErrors "errors"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,13 +45,14 @@ func (h *RegisterHandler) Handle(c *gin.Context) {
 	registerResponse, err := h.registerService.Execute(c.Request.Context(), req)
 	if err != nil {
 		switch {
-		case errors.Is(err, service.ErrUserAlreadyExists):
+		case stdErrors.Is(err, errors.ErrorUserAlreadyExists):
 			response.ResponseWithError(c.Writer, http.StatusConflict, err.Error())
 		default:
 			response.ResponseWithError(c.Writer, http.StatusInternalServerError, "internal server error")
 		}
 		return
 	}
+
 
 	// 3. Réponse en cas de succès
 	response.ResponseWithSuccess(c.Writer, http.StatusCreated, "user registered successfully", registerResponse)

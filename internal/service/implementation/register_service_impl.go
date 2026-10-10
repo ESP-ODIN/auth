@@ -6,9 +6,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"auth/internal/dto"
+	"auth/internal/errors"
 	"auth/internal/model"
 	"auth/internal/repository"
-	"auth/internal/service"
 	"auth/internal/utils"
 
 	"github.com/google/uuid"
@@ -33,7 +33,7 @@ func (s *RegisterService) Execute(ctx context.Context, req dto.RegisterRequest) 
 		return nil, err
 	}
 	if exists {
-		return nil, service.ErrUserAlreadyExists
+		return nil, errors.ErrorUserAlreadyExists
 	}
 
 	// 2. Hachage du mot de passe
