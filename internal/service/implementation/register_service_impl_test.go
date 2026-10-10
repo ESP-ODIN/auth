@@ -5,8 +5,7 @@ import (
 	"testing"
 
 	"auth/internal/dto"
-	"auth/internal/model"
-	"auth/internal/service"
+	"auth/internal/errors"
 	"auth/internal/testutil"
 	"auth/internal/utils"
 	"github.com/golang-jwt/jwt/v5"
@@ -14,21 +13,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
-
-// Mock du repository
-type MockUserRepo struct {
-	mock.Mock
-}
-
-func (m *MockUserRepo) Create(ctx context.Context, user *model.User) error {
-	args := m.Called(ctx, user)
-	return args.Error(0)
-}
-
-func (m *MockUserRepo) ExistsByEmail(ctx context.Context, email string) (bool, error) {
-	args := m.Called(ctx, email)
-	return args.Bool(0), args.Error(1)
-}
 
 func TestRegisterService_Execute_Success(t *testing.T) {
 	mockRepo := new(MockUserRepo)
@@ -74,7 +58,7 @@ func TestRegisterService_Execute_UserAlreadyExists(t *testing.T) {
 	user, err := s.Execute(context.Background(), req)
 
 	assert.Error(t, err)
-	assert.Equal(t, service.ErrUserAlreadyExists, err)
+	assert.Equal(t, errors.ErrorUserAlreadyExists, err)
 	assert.Nil(t, user)
 	mockRepo.AssertExpectations(t)
 }
