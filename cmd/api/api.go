@@ -18,8 +18,8 @@ func routes(db *pgxpool.Pool, signer *utils.JWTSigner) http.Handler {
 	userRepo := repoImpl.NewUserRepository(db)
 	registerService := svcImpl.NewRegisterService(userRepo, signer)
 	registerHandler := handler.NewRegisterHandler(registerService)
-	loginService := svcImpl.NewLoginService(userRepo)
-	loginHandler := handler.NewLoginHandler(loginService, signer)
+	loginService := svcImpl.NewLoginService(userRepo, signer)
+	loginHandler := handler.NewLoginHandler(loginService)
 
 	// Rate limiting: 1 request per second, burst of 5
 	rateLimiter := middleware.NewRateLimiter(rate.Every(1*time.Second), 5)
