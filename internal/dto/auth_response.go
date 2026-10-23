@@ -6,3 +6,8 @@ type RegisterResponse struct {
 	User  *model.User `json:"user"`
 	Token string      `json:"token"`
 }
+
+type LoginResponse struct {
+	User  *model.User `json:"user"`
+	Token string      `json:"token"`
+}
