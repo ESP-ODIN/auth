@@ -126,6 +126,12 @@ private key is required. They cover RS256, claims, 24-hour expiration, `kid`,
 wrong-key rejection, algorithm restrictions, key loading and verification using
 the public key reconstructed from the HTTP JWKS response.
 
+## CI pipeline
+
+Every push runs `go vet` and the unit tests on GitHub Actions, and a local
+`pre-push` hook blocks the push if any test fails. Enable the hook once with
+`make hooks`. See [docs/PIPELINE.md](docs/PIPELINE.md).
+
 ## Manual registration and JWKS check
 
 This checkout contains `POST /api/v1/auth/register` only: no login endpoint is

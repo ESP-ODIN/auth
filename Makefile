@@ -1,4 +1,4 @@
-.PHONY: run build test vet fmt swagger docker-build docker-dev
+.PHONY: run build test vet fmt swagger docker-build docker-dev hooks
 
 -include .env
 
@@ -31,3 +31,7 @@ docker-dev:
 
 swagger:
 	swag init -g cmd/api/main.go -o docs --parseInternal
+
+# Active les hooks git du repo (lance les tests avant chaque push).
+hooks:
+	git config core.hooksPath .githooks
