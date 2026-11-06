@@ -16,35 +16,82 @@ definitions:
       token:
         type: string
       user:
-        $ref: '#/definitions/model.User'
+        $ref: '#/definitions/dto.UserResponse'
     type: object
   dto.RegisterRequest:
     properties:
+      date_of_birth:
+        example: "1990-01-31"
+        format: date
+        type: string
       email:
+        example: jane.doe@example.com
+        type: string
+      first_name:
+        example: Jane
+        maxLength: 100
+        minLength: 3
+        type: string
+      last_name:
+        example: Doe
+        maxLength: 100
+        minLength: 2
         type: string
       password:
+        example: Str0ngPassw0rd!
         maxLength: 100
         minLength: 8
         type: string
+      username:
+        example: janedoe
+        maxLength: 50
+        minLength: 3
+        type: string
     required:
+    - date_of_birth
     - email
+    - first_name
+    - last_name
     - password
+    - username
     type: object
-  model.User:
+  dto.RegisterResponse:
     properties:
-      createdAt:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserResponse'
+    type: object
+  dto.UserResponse:
+    properties:
+      created_at:
+        type: string
+      date_of_birth:
+        example: "1990-01-31"
+        format: date
         type: string
       email:
+        example: jane.doe@example.com
+        type: string
+      first_name:
+        example: Jane
         type: string
       id:
+        example: 3f6c1c1e-8a52-4a8e-9a6b-2f1f0f6a9b10
         type: string
-      isActive:
+      is_active:
+        example: true
         type: boolean
-      password:
+      last_name:
+        example: Doe
         type: string
-      roleID:
+      role_id:
+        example: 1
         type: integer
-      updatedAt:
+      updated_at:
+        type: string
+      username:
+        example: janedoe
         type: string
     type: object
 info:
@@ -84,7 +131,7 @@ paths:
       summary: Login a user
       tags:
       - Authentication
-  /api/v1/register:
+  /api/v1/auth/register:
     post:
       consumes:
       - application/json
@@ -102,13 +149,13 @@ paths:
         "201":
           description: User registered successfully
           schema:
-            type: string
+            $ref: '#/definitions/dto.RegisterResponse'
         "400":
-          description: Bad request
+          description: Bad request (invalid data or user under 18)
           schema:
             type: string
         "409":
-          description: User already exists
+          description: Email or username already exists
           schema:
             type: string
         "500":
