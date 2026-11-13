@@ -4,7 +4,6 @@ import (
 	"auth/internal/dto"
 	"auth/internal/errors"
 	"auth/internal/service"
-	"auth/internal/utils"
 	"auth/internal/utils/http/response"
 	stdErrors "errors"
 	"net/http"
@@ -16,7 +15,7 @@ type LoginHandler struct {
 	LoginServiceImpl service.LoginServiceInterface
 }
 
-func NewLoginHandler(loginService service.LoginServiceInterface, signer *utils.JWTSigner) *LoginHandler {
+func NewLoginHandler(loginService service.LoginServiceInterface) *LoginHandler {
 	return &LoginHandler{
 		LoginServiceImpl: loginService,
 	}

@@ -11,10 +11,11 @@ import (
 
 type LoginServiceImpl struct {
 	userRepository repository.UserRepository
+	signer         *utils.JWTSigner
 }
 
-func NewLoginService(userRepository repository.UserRepository) *LoginServiceImpl {
-	return &LoginServiceImpl{userRepository: userRepository}
+func NewLoginService(userRepository repository.UserRepository, signer *utils.JWTSigner) *LoginServiceImpl {
+	return &LoginServiceImpl{userRepository: userRepository, signer: signer}
 }
 
 func (s *LoginServiceImpl) Login(ctx context.Context, req *dto.LoginRequest) (*dto.LoginResponse, error) {
@@ -30,5 +31,13 @@ func (s *LoginServiceImpl) Login(ctx context.Context, req *dto.LoginRequest) (*d
 		return nil, appErrors.ErrorInvalidCredentials
 	}
 
-	return &dto.LoginResponse{}, nil
+	token, err := s.signer.GenerateJWT(user.ID, user.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.LoginResponse{
+		User:  user,
+		Token: token,
+	}, nil
 }
