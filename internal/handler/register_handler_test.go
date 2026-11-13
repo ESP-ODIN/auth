@@ -17,14 +17,18 @@ func (f fakeRegisterService) Execute(ctx context.Context, req dto.RegisterReques
 	return &dto.RegisterResponse{}, nil
 }
 
+func registerBody(password string) string {
+	return `{"email":"user@odin.test","password":"` + password + `","username":"janedoe","first_name":"Jane","last_name":"Doe","date_of_birth":"1990-01-31"}`
+}
+
 func TestRegisterPasswordLength(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	for _, tc := range []struct {
 		name, body string
 		status     int
 	}{
-		{"72 chars", `{"email":"user@odin.test","password":"` + strings.Repeat("a", 72) + `"}`, http.StatusCreated},
-		{"73 chars", `{"email":"user@odin.test","password":"` + strings.Repeat("a", 73) + `"}`, http.StatusBadRequest},
+		{"100 chars", registerBody(strings.Repeat("a", 100)), http.StatusCreated},
+		{"101 chars", registerBody(strings.Repeat("a", 101)), http.StatusBadRequest},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			r := gin.New()

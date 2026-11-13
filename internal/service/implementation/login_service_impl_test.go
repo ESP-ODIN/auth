@@ -36,7 +36,7 @@ func TestLoginService_Login_Success(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, resp)
-	assert.Equal(t, storedUser, resp.User)
+	assert.Equal(t, dto.NewUserResponse(storedUser), resp.User)
 	claims := &utils.Claims{}
 	_, err = jwt.ParseWithClaims(resp.Token, claims, func(*jwt.Token) (any, error) { return publicKey, nil }, jwt.WithValidMethods([]string{"RS256"}))
 	require.NoError(t, err)
@@ -62,5 +62,26 @@ func TestLoginService_Login_UserNotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, appErrors.ErrorInvalidCredentials, err)
 	assert.Nil(t, user)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestLoginService_Login_WrongPassword(t *testing.T) {
+	mockRepo := new(MockUserRepo)
+	signer, _ := testutil.Signer(t)
+	s := NewLoginService(mockRepo, signer)
+
+	req := &dto.LoginRequest{
+		Email:    "test@example.com",
+		Password: "password123",
+	}
+	hashedPassword, err := utils.HashPassword("other-password")
+	require.NoError(t, err)
+	storedUser := &model.User{ID: uuid.New(), Email: req.Email, Password: hashedPassword}
+	mockRepo.On("FindByEmail", mock.Anything, req.Email).Return(storedUser, nil)
+
+	resp, err := s.Login(context.Background(), req)
+
+	assert.ErrorIs(t, err, appErrors.ErrorInvalidCredentials)
+	assert.Nil(t, resp)
 	mockRepo.AssertExpectations(t)
 }
