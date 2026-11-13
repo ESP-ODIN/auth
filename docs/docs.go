@@ -133,7 +133,7 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string",
-                    "maxLength": 100,
+                    "maxLength": 72,
                     "minLength": 8
                 }
             }
@@ -183,7 +183,7 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string",
-                    "maxLength": 100,
+                    "maxLength": 72,
                     "minLength": 8,
                     "example": "Str0ngPassw0rd!"
                 },

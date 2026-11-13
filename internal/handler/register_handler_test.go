@@ -27,8 +27,8 @@ func TestRegisterPasswordLength(t *testing.T) {
 		name, body string
 		status     int
 	}{
-		{"100 chars", registerBody(strings.Repeat("a", 100)), http.StatusCreated},
-		{"101 chars", registerBody(strings.Repeat("a", 101)), http.StatusBadRequest},
+		{"72 chars", registerBody(strings.Repeat("a", 72)), http.StatusCreated},
+		{"73 chars", registerBody(strings.Repeat("a", 73)), http.StatusBadRequest},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			r := gin.New()

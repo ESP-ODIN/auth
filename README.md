@@ -133,7 +133,7 @@ Request body (all fields are required):
 | Field | Rules |
 | --- | --- |
 | `email` | Valid email address. Unique, case-insensitive. |
-| `password` | 8 to 100 characters. Stored as a bcrypt hash. |
+| `password` | 8 to 72 characters. Stored as a bcrypt hash. |
 | `username` | 3 to 50 characters. Unique, case-insensitive (`Jane` and `jane` are the same username). |
 | `first_name` | First name, 3 to 100 characters. |
 | `last_name` | Last name, 2 to 100 characters. |
