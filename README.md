@@ -112,6 +112,72 @@ use unsigned base64url encoding without padding. The current implementation
 publishes the active key only; overlapping key rotation is future work. Replacing
 the active key immediately removes the old verification key from this endpoint.
 
+## Register endpoint
+
+`POST /api/v1/auth/register` creates a user and returns a signed JWT.
+The full contract is also available in Swagger (`make swagger`, files in `docs/`).
+
+Request body (all fields are required):
+
+```json
+{
+  "email": "jane.doe@example.com",
+  "password": "Str0ngPassw0rd!",
+  "username": "janedoe",
+  "first_name": "Jane",
+  "last_name": "Doe",
+  "date_of_birth": "1990-01-31"
+}
+```
+
+| Field | Rules |
+| --- | --- |
+| `email` | Valid email address. Unique, case-insensitive. |
+| `password` | 8 to 100 characters. Stored as a bcrypt hash. |
+| `username` | 3 to 50 characters. Unique, case-insensitive (`Jane` and `jane` are the same username). |
+| `first_name` | First name, 3 to 100 characters. |
+| `last_name` | Last name, 2 to 100 characters. |
+| `date_of_birth` | Format `YYYY-MM-DD`. The user must be at least 18 years old on the registration date. |
+
+Email and username are stored as typed; uniqueness checks compare `LOWER(...)` values.
+
+Responses:
+
+| Status | When |
+| --- | --- |
+| `201 Created` | User registered. Body: `{ "message": "...", "data": { "user": {...}, "token": "..." } }` |
+| `400 Bad Request` | Missing or invalid field, wrong date format, or user under 18. |
+| `409 Conflict` | Email or username already used. |
+| `500 Internal Server Error` | Unexpected error (database, hashing, signing). The detailed error is logged server-side only. |
+
+Example `201` response body. Keys use snake_case, like the request. The password,
+even hashed, is never returned:
+
+```json
+{
+  "message": "user registered successfully",
+  "data": {
+    "user": {
+      "id": "3f6c1c1e-8a52-4a8e-9a6b-2f1f0f6a9b10",
+      "email": "jane.doe@example.com",
+      "username": "janedoe",
+      "first_name": "Jane",
+      "last_name": "Doe",
+      "date_of_birth": "1990-01-31",
+      "role_id": 1,
+      "is_active": true,
+      "created_at": "2026-11-06T16:10:00Z",
+      "updated_at": "2026-11-06T16:10:00Z"
+    },
+    "token": "<JWT>"
+  }
+}
+```
+
+Database requirements: the `public.user` table needs the `username`, `first_name`,
+`last_name` and `date_of_birth` columns, with unique indexes on `LOWER(username)`
+and `LOWER(email)`.
+
 ## Tests
 
 ```powershell
@@ -128,17 +194,26 @@ the public key reconstructed from the HTTP JWKS response.
 
 ## Manual registration and JWKS check
 
-This checkout contains `POST /api/v1/auth/register` only: no login endpoint is
-implemented in the checked-in source. The following uses the existing token
-issuance endpoint, without inventing a login API. A running PostgreSQL database
-with the existing schema and role ID 1 is required for registration.
+Two authentication endpoints are available: `POST /api/v1/auth/register` and
+`POST /api/v1/auth/login`. The login endpoint checks the email and password but
+does not return a token yet, so the following check uses the register endpoint,
+which issues the JWT. A running PostgreSQL database with the existing schema
+and role ID 1 is required for registration.
 
 Start `go run ./cmd/api`, then in another PowerShell terminal:
 
 ```powershell
 $base = 'http://127.0.0.1:8080' # use port 8091 with make docker-dev
 $email = 'rsa-' + [guid]::NewGuid().ToString('N') + '@example.com'
-$body = @{ email = $email; password = 'Local-test-password-123!' } | ConvertTo-Json
+$username = 'rsa' + [guid]::NewGuid().ToString('N').Substring(0, 12)
+$body = @{
+    email         = $email
+    password      = 'Local-test-password-123!'
+    username      = $username
+    first_name    = 'Jane'
+    last_name     = 'Doe'
+    date_of_birth = '1990-01-31'
+} | ConvertTo-Json
 $result = Invoke-RestMethod -Method Post -Uri "$base/api/v1/auth/register" -ContentType 'application/json' -Body $body
 $jwks = Invoke-RestMethod -Uri "$base/.well-known/jwks.json"
 $jwks | ConvertTo-Json -Depth 5

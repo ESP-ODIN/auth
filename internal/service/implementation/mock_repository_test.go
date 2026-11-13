@@ -21,6 +21,11 @@ func (m *MockUserRepo) ExistsByEmail(ctx context.Context, email string) (bool, e
 	return args.Bool(0), args.Error(1)
 }
 
+func (m *MockUserRepo) ExistsByUsername(ctx context.Context, username string) (bool, error) {
+	args := m.Called(ctx, username)
+	return args.Bool(0), args.Error(1)
+}
+
 func (m *MockUserRepo) FindByEmail(ctx context.Context, email string) (*model.User, error) {
 	args := m.Called(ctx, email)
 	if args.Get(0) == nil {

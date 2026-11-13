@@ -3,7 +3,6 @@ package service
 import (
 	"auth/internal/dto"
 	"context"
-	
 )
 
 type RegisterServiceInterface interface {
