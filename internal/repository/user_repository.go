@@ -11,3 +11,7 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*model.User, error)
 	ExistsByUsername(ctx context.Context, username string) (bool, error)
 }
+
+func (u UserRepository) FindByID(ctx context.Context, param any) (any, any) {
+	panic("unimplemented")
+}

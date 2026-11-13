@@ -55,3 +55,16 @@ func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*mo
 	}
 	return &user, nil
 }
+
+func (r *UserRepositoryImpl) FindByID(ctx context.Context, id string) (*model.User, error) {
+	var user model.User
+	query := "SELECT id, email, password, role_id, is_active, created_at, updated_at FROM public.user WHERE id = $1"
+	err := r.db.QueryRow(ctx, query, id).Scan(&user.ID, &user.Email, &user.Password, &user.RoleID, &user.IsActive, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		if stdErrors.Is(err, pgx.ErrNoRows) {
+			return nil, errors.ErrorUserNotFound
+		}
+		return nil, err
+	}
+	return &user, nil
+}
