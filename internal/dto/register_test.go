@@ -38,7 +38,8 @@ func TestRegisterRequest_Validation(t *testing.T) {
 		{"mot de passe manquant", func(r *RegisterRequest) { r.Password = "" }, true},
 		{"mot de passe trop court (7)", func(r *RegisterRequest) { r.Password = "1234567" }, true},
 		{"mot de passe longueur min (8)", func(r *RegisterRequest) { r.Password = "12345678" }, false},
-		{"mot de passe trop long (101)", func(r *RegisterRequest) { r.Password = strings.Repeat("a", 101) }, true},
+		{"mot de passe longueur max (72)", func(r *RegisterRequest) { r.Password = strings.Repeat("a", 72) }, false},
+		{"mot de passe trop long (73)", func(r *RegisterRequest) { r.Password = strings.Repeat("a", 73) }, true},
 
 		// username
 		{"pseudo manquant", func(r *RegisterRequest) { r.Username = "" }, true},

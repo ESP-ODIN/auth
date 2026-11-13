@@ -133,7 +133,7 @@ Request body (all fields are required):
 | Field | Rules |
 | --- | --- |
 | `email` | Valid email address. Unique, case-insensitive. |
-| `password` | 8 to 100 characters. Stored as a bcrypt hash. |
+| `password` | 8 to 72 characters. Stored as a bcrypt hash. |
 | `username` | 3 to 50 characters. Unique, case-insensitive (`Jane` and `jane` are the same username). |
 | `first_name` | First name, 3 to 100 characters. |
 | `last_name` | Last name, 2 to 100 characters. |
@@ -195,10 +195,13 @@ the public key reconstructed from the HTTP JWKS response.
 ## Manual registration and JWKS check
 
 Two authentication endpoints are available: `POST /api/v1/auth/register` and
-`POST /api/v1/auth/login`. The login endpoint checks the email and password but
-does not return a token yet, so the following check uses the register endpoint,
-which issues the JWT. A running PostgreSQL database with the existing schema
-and role ID 1 is required for registration.
+`POST /api/v1/auth/login`. Login accepts `{ "email", "password" }` and returns
+`200` with `{ "message", "data": { "user", "token" } }`. The user payload is the
+public profile and does not include the password. Unknown email and wrong
+password both return `401` with `invalid credentials`. A login password outside
+8 to 72 characters returns `400`. A running PostgreSQL database with the existing
+schema and role ID 1 is required for registration and login. The check below
+uses the register endpoint, which also issues a JWT.
 
 Start `go run ./cmd/api`, then in another PowerShell terminal:
 

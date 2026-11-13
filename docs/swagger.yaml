@@ -4,7 +4,7 @@ definitions:
       email:
         type: string
       password:
-        maxLength: 100
+        maxLength: 72
         minLength: 8
         type: string
     required:
@@ -39,7 +39,7 @@ definitions:
         type: string
       password:
         example: Str0ngPassw0rd!
-        maxLength: 100
+        maxLength: 72
         minLength: 8
         type: string
       username:
