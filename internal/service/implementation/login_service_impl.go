@@ -37,7 +37,7 @@ func (s *LoginServiceImpl) Login(ctx context.Context, req *dto.LoginRequest) (*d
 	}
 
 	return &dto.LoginResponse{
-		User:  user,
+		User:  dto.NewUserResponse(user),
 		Token: token,
 	}, nil
 }
