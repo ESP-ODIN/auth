@@ -1,6 +1,9 @@
 package config
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestLoad(t *testing.T) {
 	setJWTEnv(t)
@@ -44,6 +47,8 @@ func setJWTEnv(t *testing.T) {
 	t.Setenv("JWT_KEY_ID", "dev-key")
 	t.Setenv("JWT_ISSUER", "https://auth.odin.test")
 	t.Setenv("JWT_AUDIENCE", "odin-api")
+	t.Setenv("ACCESS_TOKEN_TTL", "15m")
+	t.Setenv("REFRESH_TOKEN_TTL", "24h")
 }
 
 func TestLoadJWTConfig(t *testing.T) {
@@ -64,5 +69,28 @@ func TestLoadJWTConfig(t *testing.T) {
 				t.Fatalf("accepted missing %s", name)
 			}
 		})
+	}
+}
+
+func TestLoadTokenTTL(t *testing.T) {
+	t.Setenv("HTTP_ADDR", "127.0.0.1:8080")
+	t.Setenv("DATABASE_URL", "postgres://localhost/test")
+	setJWTEnv(t)
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.AccessTokenTTL != 15*time.Minute || cfg.RefreshTokenTTL != 24*time.Hour {
+		t.Fatalf("TTL = %v / %v, want 15m / 24h", cfg.AccessTokenTTL, cfg.RefreshTokenTTL)
+	}
+	for _, name := range []string{"ACCESS_TOKEN_TTL", "REFRESH_TOKEN_TTL"} {
+		for _, value := range []string{"", " ", "abc", "15", "0s", "-5m"} {
+			t.Run(name+"="+value, func(t *testing.T) {
+				t.Setenv(name, value)
+				if _, err := Load(); err == nil {
+					t.Fatalf("accepted %s=%q", name, value)
+				}
+			})
+		}
 	}
 }

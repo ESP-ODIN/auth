@@ -67,6 +67,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/auth/refresh": {
+            "post": {
+                "description": "Exchange a valid refresh token for a new access token (JWT) and a new refresh token. The refresh token sent is revoked (rotation) and cannot be used again. Reusing an already revoked refresh token revokes every refresh token of the user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Refresh the tokens",
+                "parameters": [
+                    {
+                        "description": "Refresh token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RefreshTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tokens refreshed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/dto.RefreshTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid, expired or revoked refresh token",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/register": {
             "post": {
                 "description": "Register a new user",
@@ -141,11 +193,39 @@ const docTemplate = `{
         "dto.LoginResponse": {
             "type": "object",
             "properties": {
-                "token": {
+                "access_token": {
                     "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string",
+                    "example": "dGhpcy1pcy1hbi1leGFtcGxlLXJlZnJlc2gtdG9rZW4"
                 },
                 "user": {
                     "$ref": "#/definitions/dto.UserResponse"
+                }
+            }
+        },
+        "dto.RefreshTokenRequest": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string",
+                    "example": "dGhpcy1pcy1hbi1leGFtcGxlLXJlZnJlc2gtdG9rZW4"
+                }
+            }
+        },
+        "dto.RefreshTokenResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string",
+                    "example": "dGhpcy1pcy1hbi1leGFtcGxlLXJlZnJlc2gtdG9rZW4"
                 }
             }
         },

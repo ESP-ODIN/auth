@@ -33,3 +33,39 @@ func (m *MockUserRepo) FindByEmail(ctx context.Context, email string) (*model.Us
 	}
 	return args.Get(0).(*model.User), args.Error(1)
 }
+
+func (m *MockUserRepo) FindByID(ctx context.Context, id string) (*model.User, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*model.User), args.Error(1)
+}
+
+// MockRefreshTokenRepo est un mock partagé pour RefreshTokenRepository
+type MockRefreshTokenRepo struct {
+	mock.Mock
+}
+
+func (m *MockRefreshTokenRepo) Create(ctx context.Context, refreshToken *model.RefreshToken) error {
+	args := m.Called(ctx, refreshToken)
+	return args.Error(0)
+}
+
+func (m *MockRefreshTokenRepo) GetByToken(ctx context.Context, tokenHash string) (*model.RefreshToken, error) {
+	args := m.Called(ctx, tokenHash)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*model.RefreshToken), args.Error(1)
+}
+
+func (m *MockRefreshTokenRepo) RevokeRefreshToken(ctx context.Context, tokenHash string) error {
+	args := m.Called(ctx, tokenHash)
+	return args.Error(0)
+}
+
+func (m *MockRefreshTokenRepo) RevokeAllRefreshTokensForUser(ctx context.Context, userID string) error {
+	args := m.Called(ctx, userID)
+	return args.Error(0)
+}

@@ -49,6 +49,7 @@ type RegisterResponse struct {
 }
 
 type LoginResponse struct {
-	User  *UserResponse `json:"user"`
-	Token string        `json:"token"`
+	User         *UserResponse `json:"user"`
+	AccessToken  string        `json:"access_token"`
+	RefreshToken string        `json:"refresh_token" example:"dGhpcy1pcy1hbi1leGFtcGxlLXJlZnJlc2gtdG9rZW4"`
 }
