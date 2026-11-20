@@ -4,9 +4,8 @@ import (
 	"auth/internal/dto"
 	"auth/internal/errors"
 	"auth/internal/repository"
+	"auth/internal/utils"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -30,7 +29,7 @@ func NewResetPasswordService(
 }
 
 func (s *ResetPasswordService) Execute(ctx context.Context, req *dto.ResetPasswordRequest) error {
-	hash := sha256Hash(req.Token)
+	hash := utils.SHA256Hash(req.Token)
 
 	token, err := s.tokenRepo.FindByTokenHash(ctx, hash)
 	if err != nil {
@@ -57,7 +56,3 @@ func (s *ResetPasswordService) Execute(ctx context.Context, req *dto.ResetPasswo
 	return nil
 }
 
-func sha256Hash(s string) string {
-	h := sha256.Sum256([]byte(s))
-	return hex.EncodeToString(h[:])
-}
