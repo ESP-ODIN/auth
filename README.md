@@ -131,7 +131,10 @@ The forgot-password flow sends a reset link by email via SMTP. Add the following
 | `SMTP_PASSWORD` | SMTP password (optional for local/unauthenticated servers) | *(from your provider)* |
 | `SMTP_FROM` | Sender address for outgoing emails | `noreply@odin.local` |
 
-For local development, [Mailtrap](https://mailtrap.io) is recommended — it catches emails without delivering them. Create a free account, copy the SMTP credentials into `.env`, and check the Mailtrap inbox after calling `POST /api/v1/auth/forgot-password`.
+### Outils recommandés
+
+- **Développement local** : [Mailtrap](https://mailtrap.io) (gratuit) — intercepte les emails dans une boîte de réception web sans jamais les envoyer réellement. Idéal pour tester le flow forgot-password sans risque d'envoyer des mails à de vrais utilisateurs. Il suffit de créer un compte, copier les identifiants SMTP dans le `.env`, et vérifier la boîte Mailtrap après un appel à `POST /api/v1/auth/forgot-password`.
+- **Production** : [Resend](https://resend.com) ou [AWS SES](https://aws.amazon.com/ses/) sont de bonnes options selon l'infrastructure choisie. Le choix se fera plus tard — l'envoi est derrière une interface, donc le changement de fournisseur ne touche pas la logique métier.
 
 ## Register endpoint
 
