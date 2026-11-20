@@ -44,6 +44,10 @@ func setJWTEnv(t *testing.T) {
 	t.Setenv("JWT_KEY_ID", "dev-key")
 	t.Setenv("JWT_ISSUER", "https://auth.odin.test")
 	t.Setenv("JWT_AUDIENCE", "odin-api")
+	t.Setenv("FRONTEND_URL", "http://localhost:3000")
+	t.Setenv("SMTP_HOST", "localhost")
+	t.Setenv("SMTP_PORT", "587")
+	t.Setenv("SMTP_FROM", "noreply@odin.test")
 }
 
 func TestLoadJWTConfig(t *testing.T) {
