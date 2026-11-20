@@ -112,6 +112,27 @@ use unsigned base64url encoding without padding. The current implementation
 publishes the active key only; overlapping key rotation is future work. Replacing
 the active key immediately removes the old verification key from this endpoint.
 
+## API Routes
+
+See [ROUTES.md](ROUTES.md) for the full list of endpoints, request/response formats and status codes.
+
+The routes are also available in Swagger UI at `/swagger/index.html` when the server is running.
+
+## SMTP configuration
+
+The forgot-password flow sends a reset link by email via SMTP. Add the following to your `.env`:
+
+| Variable | Meaning | Local example |
+| --- | --- | --- |
+| `FRONTEND_URL` | Base URL of the frontend app (used to build the reset link) | `http://localhost:3000` |
+| `SMTP_HOST` | SMTP server hostname | `sandbox.smtp.mailtrap.io` |
+| `SMTP_PORT` | SMTP server port | `587` |
+| `SMTP_USER` | SMTP username (optional for local/unauthenticated servers) | *(from your provider)* |
+| `SMTP_PASSWORD` | SMTP password (optional for local/unauthenticated servers) | *(from your provider)* |
+| `SMTP_FROM` | Sender address for outgoing emails | `noreply@odin.local` |
+
+For local development, [Mailtrap](https://mailtrap.io) is recommended — it catches emails without delivering them. Create a free account, copy the SMTP credentials into `.env`, and check the Mailtrap inbox after calling `POST /api/v1/auth/forgot-password`.
+
 ## Register endpoint
 
 `POST /api/v1/auth/register` creates a user and returns a signed JWT.
