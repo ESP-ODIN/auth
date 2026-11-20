@@ -17,7 +17,7 @@ import (
 
 func TestRoutes(t *testing.T) {
 	signer, _ := testutil.Signer(t)
-	r := routes(nil, signer)
+	r := routes(nil, signer, nil)
 	for _, tc := range []struct {
 		method, path, body string
 		status             int
@@ -40,7 +40,7 @@ func TestRoutes(t *testing.T) {
 func TestJWKSVerifiesIssuedToken(t *testing.T) {
 	signer, _ := testutil.Signer(t)
 	rec := httptest.NewRecorder()
-	routes(nil, signer).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/.well-known/jwks.json", nil))
+	routes(nil, signer, nil).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/.well-known/jwks.json", nil))
 	if rec.Code != http.StatusOK || !strings.HasPrefix(rec.Header().Get("Content-Type"), "application/json") {
 		t.Fatal("invalid JWKS response")
 	}

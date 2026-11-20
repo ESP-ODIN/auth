@@ -11,6 +11,8 @@ import (
 func SetupRouter(
 	registerHandler *handler.RegisterHandler,
 	loginHandler *handler.LoginHandler,
+	resetPasswordHandler *handler.ResetPasswordHandler,
+	forgotPasswordHandler *handler.ForgotPasswordHandler,
 	rateLimiter gin.HandlerFunc,
 	jwksHandler gin.HandlerFunc,
 ) *gin.Engine {
@@ -22,6 +24,8 @@ func SetupRouter(
 	{
 		api.POST("/register", rateLimiter, registerHandler.Handle)
 		api.POST("/login", rateLimiter, loginHandler.Handle)
+		api.POST("/reset-password", rateLimiter, resetPasswordHandler.Handle)
+		api.POST("/forgot-password", rateLimiter, forgotPasswordHandler.Handle)
 	}
 
 	return r

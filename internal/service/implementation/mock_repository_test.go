@@ -3,6 +3,8 @@ package implementation
 import (
 	"auth/internal/model"
 	"context"
+
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -32,4 +34,9 @@ func (m *MockUserRepo) FindByEmail(ctx context.Context, email string) (*model.Us
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*model.User), args.Error(1)
+}
+
+func (m *MockUserRepo) UpdatePassword(ctx context.Context, userID uuid.UUID, hashedPassword string) error {
+	args := m.Called(ctx, userID, hashedPassword)
+	return args.Error(0)
 }
