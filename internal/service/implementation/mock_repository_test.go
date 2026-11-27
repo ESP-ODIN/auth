@@ -3,6 +3,8 @@ package implementation
 import (
 	"auth/internal/model"
 	"context"
+
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -67,5 +69,10 @@ func (m *MockRefreshTokenRepo) RevokeRefreshToken(ctx context.Context, tokenHash
 
 func (m *MockRefreshTokenRepo) RevokeAllRefreshTokensForUser(ctx context.Context, userID string) error {
 	args := m.Called(ctx, userID)
+	return args.Error(0)
+}
+
+func (m *MockUserRepo) UpdatePassword(ctx context.Context, userID uuid.UUID, hashedPassword string) error {
+	args := m.Called(ctx, userID, hashedPassword)
 	return args.Error(0)
 }

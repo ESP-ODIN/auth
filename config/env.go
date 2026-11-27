@@ -18,6 +18,12 @@ type Config struct {
 	JWTAudience       string
 	AccessTokenTTL    time.Duration
 	RefreshTokenTTL   time.Duration
+	FrontendURL       string
+	SMTPHost          string
+	SMTPPort          string
+	SMTPUser          string
+	SMTPPassword      string
+	SMTPFrom          string
 }
 
 func Load() (Config, error) {
@@ -43,12 +49,22 @@ func Load() (Config, error) {
 		JWTKeyID:          os.Getenv("JWT_KEY_ID"),
 		JWTIssuer:         os.Getenv("JWT_ISSUER"),
 		JWTAudience:       os.Getenv("JWT_AUDIENCE"),
+		FrontendURL:       os.Getenv("FRONTEND_URL"),
+		SMTPHost:          os.Getenv("SMTP_HOST"),
+		SMTPPort:          os.Getenv("SMTP_PORT"),
+		SMTPUser:          os.Getenv("SMTP_USER"),
+		SMTPPassword:      os.Getenv("SMTP_PASSWORD"),
+		SMTPFrom:          os.Getenv("SMTP_FROM"),
 	}
 	for _, entry := range []struct{ name, value string }{
 		{"JWT_PRIVATE_KEY_PATH", cfg.JWTPrivateKeyPath},
 		{"JWT_KEY_ID", cfg.JWTKeyID},
 		{"JWT_ISSUER", cfg.JWTIssuer},
 		{"JWT_AUDIENCE", cfg.JWTAudience},
+		{"FRONTEND_URL", cfg.FrontendURL},
+		{"SMTP_HOST", cfg.SMTPHost},
+		{"SMTP_PORT", cfg.SMTPPort},
+		{"SMTP_FROM", cfg.SMTPFrom},
 	} {
 		if strings.TrimSpace(entry.value) == "" {
 			return Config{}, fmt.Errorf("%s is required", entry.name)

@@ -6,6 +6,7 @@ import (
 	"context"
 	stdErrors "errors"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -72,4 +73,16 @@ func (r *UserRepositoryImpl) FindByID(ctx context.Context, id string) (*model.Us
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *UserRepositoryImpl) UpdatePassword(ctx context.Context, userID uuid.UUID, hashedPassword string) error {
+	query := `UPDATE public."user" SET password = $1, updated_at = now() WHERE id = $2`
+	ct, err := r.db.Exec(ctx, query, hashedPassword, userID)
+	if err != nil {
+		return err
+	}
+	if ct.RowsAffected() == 0 {
+		return errors.ErrorUserNotFound
+	}
+	return nil
 }

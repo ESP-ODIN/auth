@@ -119,6 +119,30 @@ use unsigned base64url encoding without padding. The current implementation
 publishes the active key only; overlapping key rotation is future work. Replacing
 the active key immediately removes the old verification key from this endpoint.
 
+## API Routes
+
+See [ROUTES.md](ROUTES.md) for the full list of endpoints, request/response formats and status codes.
+
+The routes are also available in Swagger UI at `/swagger/index.html` when the server is running.
+
+## SMTP configuration
+
+The forgot-password flow sends a reset link by email via SMTP. Add the following to your `.env`:
+
+| Variable | Meaning | Local example |
+| --- | --- | --- |
+| `FRONTEND_URL` | Base URL of the frontend app (used to build the reset link) | `http://localhost:3000` |
+| `SMTP_HOST` | SMTP server hostname | `sandbox.smtp.mailtrap.io` |
+| `SMTP_PORT` | SMTP server port | `587` |
+| `SMTP_USER` | SMTP username (optional for local/unauthenticated servers) | *(from your provider)* |
+| `SMTP_PASSWORD` | SMTP password (optional for local/unauthenticated servers) | *(from your provider)* |
+| `SMTP_FROM` | Sender address for outgoing emails | `noreply@odin.local` |
+
+### Outils recommandés
+
+- **Développement local** : [Mailtrap](https://mailtrap.io) (gratuit) — intercepte les emails dans une boîte de réception web sans jamais les envoyer réellement. Idéal pour tester le flow forgot-password sans risque d'envoyer des mails à de vrais utilisateurs. Il suffit de créer un compte, copier les identifiants SMTP dans le `.env`, et vérifier la boîte Mailtrap après un appel à `POST /api/v1/auth/forgot-password`.
+- **Production** : [Resend](https://resend.com) ou [AWS SES](https://aws.amazon.com/ses/) sont de bonnes options selon l'infrastructure choisie. Le choix se fera plus tard — l'envoi est derrière une interface, donc le changement de fournisseur ne touche pas la logique métier.
+
 ## Register endpoint
 
 `POST /api/v1/auth/register` creates a user and returns a signed JWT.

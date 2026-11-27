@@ -3,6 +3,7 @@ package main
 import (
 	"auth/config"
 	"auth/db"
+	svcImpl "auth/internal/service/implementation"
 	"auth/internal/utils"
 	"context"
 	"errors"
@@ -47,9 +48,13 @@ func run() error {
 	defer pool.Close()
 	slog.Info("connected to database")
 
+	emailSender := svcImpl.NewSMTPEmailService(
+		cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUser, cfg.SMTPPassword, cfg.SMTPFrom, cfg.FrontendURL,
+	)
+
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,
-		Handler:           routes(pool, signer, cfg.RefreshTokenTTL),
+		Handler:           routes(pool, signer, cfg.RefreshTokenTTL, emailSender),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,
