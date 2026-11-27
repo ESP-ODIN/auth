@@ -33,8 +33,8 @@ func TestGenerateJWT(t *testing.T) {
 	if claims.ID != id || claims.Email != "user@odin.test" {
 		t.Fatal("identity changed")
 	}
-	if claims.IssuedAt == nil || claims.ExpiresAt == nil || claims.ExpiresAt.Sub(claims.IssuedAt.Time) != 24*time.Hour {
-		t.Fatal("expected 24 hour lifetime")
+	if claims.IssuedAt == nil || claims.ExpiresAt == nil || claims.ExpiresAt.Sub(claims.IssuedAt.Time) != testutil.AccessTokenTTL {
+		t.Fatal("token lifetime does not match the configured access TTL")
 	}
 	if time.Since(claims.IssuedAt.Time) < 0 || time.Since(claims.IssuedAt.Time) > 5*time.Second {
 		t.Fatal("incorrect iat")
@@ -86,12 +86,17 @@ func TestLoadJWTSigner(t *testing.T) {
 			if err := os.WriteFile(path, tc.data, 0600); err != nil {
 				t.Fatal(err)
 			}
-			if _, err := utils.LoadJWTSigner(path, "key", "issuer", "audience"); (err == nil) != tc.valid {
+			if _, err := utils.LoadJWTSigner(path, "key", "issuer", "audience", time.Minute); (err == nil) != tc.valid {
 				t.Fatalf("unexpected load result: %v", err)
 			}
 		})
 	}
-	if _, err := utils.LoadJWTSigner(filepath.Join(t.TempDir(), "missing"), "key", "issuer", "audience"); err == nil {
+	if _, err := utils.LoadJWTSigner(filepath.Join(t.TempDir(), "missing"), "key", "issuer", "audience", time.Minute); err == nil {
 		t.Fatal("accepted missing file")
+	}
+	for _, ttl := range []time.Duration{0, -time.Minute} {
+		if _, err := utils.LoadJWTSigner("unused.pem", "key", "issuer", "audience", ttl); err == nil {
+			t.Fatalf("accepted access TTL %v", ttl)
+		}
 	}
 }

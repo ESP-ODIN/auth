@@ -12,3 +12,7 @@ type RegisterServiceInterface interface {
 type LoginServiceInterface interface {
 	Login(ctx context.Context, req *dto.LoginRequest) (*dto.LoginResponse, error)
 }
+
+type RefreshTokenServiceInterface interface {
+	Refresh(ctx context.Context, req *dto.RefreshTokenRequest) (*dto.RefreshTokenResponse, error)
+}

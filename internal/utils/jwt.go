@@ -26,6 +26,7 @@ type JWTSigner struct {
 	keyID      string
 	issuer     string
 	audience   string
+	accessTTL  time.Duration
 }
 
 type JWK struct {
@@ -42,9 +43,13 @@ type JWKS struct {
 }
 
 // LoadJWTSigner accepts an unencrypted PKCS#1 or PKCS#8 RSA PEM file.
-func LoadJWTSigner(path, keyID, issuer, audience string) (*JWTSigner, error) {
+// accessTTL is the lifetime of the access tokens it signs.
+func LoadJWTSigner(path, keyID, issuer, audience string, accessTTL time.Duration) (*JWTSigner, error) {
 	if strings.TrimSpace(path) == "" || strings.TrimSpace(keyID) == "" || strings.TrimSpace(issuer) == "" || strings.TrimSpace(audience) == "" {
 		return nil, fmt.Errorf("JWT private key path, key ID, issuer and audience are required")
+	}
+	if accessTTL <= 0 {
+		return nil, fmt.Errorf("JWT access token lifetime must be positive")
 	}
 	pemBytes, err := os.ReadFile(path)
 	if err != nil {
@@ -57,7 +62,7 @@ func LoadJWTSigner(path, keyID, issuer, audience string) (*JWTSigner, error) {
 	if err := key.Validate(); err != nil || key.N.BitLen() < 2048 {
 		return nil, fmt.Errorf("JWT private key must be valid RSA with at least 2048 bits")
 	}
-	return &JWTSigner{privateKey: key, keyID: keyID, issuer: issuer, audience: audience}, nil
+	return &JWTSigner{privateKey: key, keyID: keyID, issuer: issuer, audience: audience, accessTTL: accessTTL}, nil
 }
 
 func (s *JWTSigner) JWKS() JWKS {
@@ -77,7 +82,7 @@ func (s *JWTSigner) GenerateJWT(id uuid.UUID, email string) (string, error) {
 			Issuer:    s.issuer,
 			Audience:  jwt.ClaimStrings{s.audience},
 			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24)),
+			ExpiresAt: jwt.NewNumericDate(now.Add(s.accessTTL)),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
