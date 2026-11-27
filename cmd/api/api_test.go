@@ -13,11 +13,12 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestRoutes(t *testing.T) {
 	signer, _ := testutil.Signer(t)
-	r := routes(nil, signer, nil)
+	r := routes(nil, signer, 24*time.Hour, nil)
 	for _, tc := range []struct {
 		method, path, body string
 		status             int
@@ -26,6 +27,8 @@ func TestRoutes(t *testing.T) {
 		{http.MethodPost, "/.well-known/jwks.json", "", http.StatusNotFound},
 		{http.MethodGet, "/unknown", "", http.StatusNotFound},
 		{http.MethodPost, "/api/v1/auth/register", "{}", http.StatusBadRequest},
+		{http.MethodPost, "/api/v1/auth/refresh", "{}", http.StatusBadRequest},
+		{http.MethodGet, "/api/v1/auth/refresh", "", http.StatusNotFound},
 	} {
 		t.Run(tc.method+tc.path, func(t *testing.T) {
 			rec := httptest.NewRecorder()
@@ -40,7 +43,7 @@ func TestRoutes(t *testing.T) {
 func TestJWKSVerifiesIssuedToken(t *testing.T) {
 	signer, _ := testutil.Signer(t)
 	rec := httptest.NewRecorder()
-	routes(nil, signer, nil).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/.well-known/jwks.json", nil))
+	routes(nil, signer, 24*time.Hour, nil).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/.well-known/jwks.json", nil))
 	if rec.Code != http.StatusOK || !strings.HasPrefix(rec.Header().Get("Content-Type"), "application/json") {
 		t.Fatal("invalid JWKS response")
 	}

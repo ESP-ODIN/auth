@@ -67,7 +67,8 @@ the server automatically inside the container. The container itself always liste
 
 Auth signs access tokens using a single RSA private key loaded once at startup,
 before connecting to PostgreSQL. The existing `id` (Auth USER.id) and `email`
-claims and 24-hour lifetime are preserved. Tokens also include `iss`, `aud`,
+claims are preserved. The access token lifetime is set by `ACCESS_TOKEN_TTL`
+(it used to be a fixed 24 hours). Tokens also include `iss`, `aud`,
 `iat`, `exp` and a configurable `kid` header. There is no `sub` substitution.
 The register response remains `{ "message": "...", "data": { "user": {...}, "token": "..." } }`.
 
@@ -79,6 +80,12 @@ Required environment variables, in addition to `DATABASE_URL`:
 | `JWT_KEY_ID` | Unique identifier of the signing key | `odin-dev-1` |
 | `JWT_ISSUER` | Exact issuer consumers must trust | `http://localhost:8080` |
 | `JWT_AUDIENCE` | One logical API audience consumers must require | `odin-api` |
+| `ACCESS_TOKEN_TTL` | Lifetime of the access token (JWT), as a Go duration | `15m` |
+| `REFRESH_TOKEN_TTL` | Lifetime of a refresh token, as a Go duration | `24h` |
+
+Both durations use the Go format (`30s`, `15m`, `24h`, `168h`; there is no day
+unit) and must be strictly positive. The API refuses to start if one of them is
+missing or invalid.
 
 `odin-api` represents the ODIN APIs collectively for this configuration. It does
 not grant business permissions. Consumers must validate the signature with an
@@ -202,6 +209,60 @@ Database requirements: the `public.user` table needs the `username`, `first_name
 `last_name` and `date_of_birth` columns, with unique indexes on `LOWER(username)`
 and `LOWER(email)`.
 
+## Login and refresh tokens
+
+`POST /api/v1/auth/login` accepts `{ "email", "password" }` and returns `200` with
+a short-lived access token (JWT) and a refresh token:
+
+```json
+{
+  "message": "user logged in successfully",
+  "data": {
+    "user": { "id": "3f6c1c1e-8a52-4a8e-9a6b-2f1f0f6a9b10", "email": "jane.doe@example.com" },
+    "access_token": "<JWT>",
+    "refresh_token": "<opaque token>"
+  }
+}
+```
+
+Breaking change: the login response key `token` is now `access_token`. The
+register response is unchanged (`token`, no refresh token).
+
+The refresh token is not a JWT. It is 32 random bytes (`crypto/rand`) encoded in
+base64url, valid for `REFRESH_TOKEN_TTL`. Only its SHA-256 hash is stored, in the
+`refresh_tokens` table; the token itself is returned once and never persisted.
+
+`POST /api/v1/auth/refresh` (public, rate limited) exchanges a refresh token for
+a new pair:
+
+```json
+{ "refresh_token": "<opaque token>" }
+```
+
+| Status | When |
+| --- | --- |
+| `200 OK` | Body: `{ "message": "...", "data": { "access_token": "<JWT>", "refresh_token": "<new opaque token>" } }` |
+| `400 Bad Request` | Missing or empty `refresh_token`, or invalid JSON. |
+| `401 Unauthorized` | `invalid refresh token`: unknown, expired or revoked token, or a deleted or inactive user. The reason is never disclosed. |
+| `500 Internal Server Error` | Unexpected error. The detailed error is logged server-side only. |
+
+Rotation: every successful call revokes the refresh token that was sent and
+returns a new one, valid for a full `REFRESH_TOKEN_TTL` from that moment. The
+old token no longer works.
+
+Theft detection: presenting an already revoked refresh token revokes every
+active refresh token of that user, on all devices, and returns `401`. The user
+must log in again. Two simultaneous calls with the same token count as a reuse.
+
+### Database migration
+
+The `refresh_tokens` table is created by `migrate/sql/001_create_refresh_tokens.sql`.
+There is no migration runner yet, so apply it manually before starting the API:
+
+```sh
+psql "$DATABASE_URL" -f migrate/sql/001_create_refresh_tokens.sql
+```
+
 ## Tests
 
 ```powershell
@@ -212,19 +273,23 @@ go vet ./...
 ```
 
 Tests generate ephemeral keys and use a mock repository; no PostgreSQL or real
-private key is required. They cover RS256, claims, 24-hour expiration, `kid`,
-wrong-key rejection, algorithm restrictions, key loading and verification using
-the public key reconstructed from the HTTP JWKS response.
+private key is required. They cover RS256, claims, the configured access token
+lifetime, `kid`, wrong-key rejection, algorithm restrictions, key loading and
+verification using the public key reconstructed from the HTTP JWKS response.
+They also cover refresh token generation and hashing, the refresh token issued
+at login, rotation, reuse detection and the generic `401` of the refresh endpoint.
 
 ## Manual registration and JWKS check
 
-Two authentication endpoints are available: `POST /api/v1/auth/register` and
-`POST /api/v1/auth/login`. Login accepts `{ "email", "password" }` and returns
-`200` with `{ "message", "data": { "user", "token" } }`. The user payload is the
-public profile and does not include the password. Unknown email and wrong
-password both return `401` with `invalid credentials`. A login password outside
+Three authentication endpoints are available: `POST /api/v1/auth/register`,
+`POST /api/v1/auth/login` and `POST /api/v1/auth/refresh`. Login accepts
+`{ "email", "password" }` and returns `200` with
+`{ "message", "data": { "user", "access_token", "refresh_token" } }`. The user payload is the
+public profile and does not include the password. Unknown email, wrong
+password and deactivated account (`is_active = false`) all return `401` with
+`invalid credentials`. A login password outside
 8 to 72 characters returns `400`. A running PostgreSQL database with the existing
-schema and role ID 1 is required for registration and login. The check below
+schema, the `refresh_tokens` table and role ID 1 is required for registration and login. The check below
 uses the register endpoint, which also issues a JWT.
 
 Start `go run ./cmd/api`, then in another PowerShell terminal:

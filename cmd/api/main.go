@@ -34,7 +34,7 @@ func run() error {
 		return err
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	signer, err := utils.LoadJWTSigner(cfg.JWTPrivateKeyPath, cfg.JWTKeyID, cfg.JWTIssuer, cfg.JWTAudience)
+	signer, err := utils.LoadJWTSigner(cfg.JWTPrivateKeyPath, cfg.JWTKeyID, cfg.JWTIssuer, cfg.JWTAudience, cfg.AccessTokenTTL)
 	if err != nil {
 		stop()
 		return err
@@ -54,7 +54,7 @@ func run() error {
 
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,
-		Handler:           routes(pool, signer, emailSender),
+		Handler:           routes(pool, signer, cfg.RefreshTokenTTL, emailSender),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,

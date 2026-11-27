@@ -9,7 +9,11 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
+
+// AccessTokenTTL est la durée de vie des access tokens émis par le signer de test.
+const AccessTokenTTL = 15 * time.Minute
 
 // Signer creates an ephemeral RSA key in a test-owned temporary directory.
 func Signer(t testing.TB) (*utils.JWTSigner, *rsa.PublicKey) {
@@ -23,7 +27,7 @@ func Signer(t testing.TB) (*utils.JWTSigner, *rsa.PublicKey) {
 	if err := os.WriteFile(path, data, 0600); err != nil {
 		t.Fatal(err)
 	}
-	signer, err := utils.LoadJWTSigner(path, "test-key", "https://auth.odin.test", "odin-api")
+	signer, err := utils.LoadJWTSigner(path, "test-key", "https://auth.odin.test", "odin-api", AccessTokenTTL)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -19,6 +19,11 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepositoryImpl {
 	return &UserRepositoryImpl{db: db}
 }
 
+// userColumns liste les colonnes lues pour reconstruire un model.User complet.
+// Les COALESCE protègent les comptes créés avant l'ajout de ces colonnes, où elles peuvent être NULL.
+const userColumns = `id, email, COALESCE(username, ''), COALESCE(first_name, ''), COALESCE(last_name, ''),
+	COALESCE(date_of_birth, DATE '0001-01-01'), password, role_id, is_active, created_at, updated_at`
+
 func (r *UserRepositoryImpl) ExistsByEmail(ctx context.Context, email string) (bool, error) {
 	var exists bool
 	query := "SELECT EXISTS(SELECT 1 FROM public.user WHERE LOWER(email) = LOWER($1))"
@@ -46,8 +51,21 @@ func (r *UserRepositoryImpl) ExistsByUsername(ctx context.Context, username stri
 
 func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*model.User, error) {
 	var user model.User
-	query := "SELECT id, email, password, role_id, is_active, created_at, updated_at FROM public.user WHERE LOWER(email) = LOWER($1)"
-	err := r.db.QueryRow(ctx, query, email).Scan(&user.ID, &user.Email, &user.Password, &user.RoleID, &user.IsActive, &user.CreatedAt, &user.UpdatedAt)
+	query := "SELECT " + userColumns + " FROM public.user WHERE LOWER(email) = LOWER($1)"
+	err := r.db.QueryRow(ctx, query, email).Scan(&user.ID, &user.Email, &user.Username, &user.FirstName, &user.LastName, &user.DateOfBirth, &user.Password, &user.RoleID, &user.IsActive, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		if stdErrors.Is(err, pgx.ErrNoRows) {
+			return nil, errors.ErrorUserNotFound
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepositoryImpl) FindByID(ctx context.Context, id string) (*model.User, error) {
+	var user model.User
+	query := "SELECT " + userColumns + " FROM public.user WHERE id = $1"
+	err := r.db.QueryRow(ctx, query, id).Scan(&user.ID, &user.Email, &user.Username, &user.FirstName, &user.LastName, &user.DateOfBirth, &user.Password, &user.RoleID, &user.IsActive, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if stdErrors.Is(err, pgx.ErrNoRows) {
 			return nil, errors.ErrorUserNotFound

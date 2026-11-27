@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -15,6 +16,8 @@ type Config struct {
 	JWTKeyID          string
 	JWTIssuer         string
 	JWTAudience       string
+	AccessTokenTTL    time.Duration
+	RefreshTokenTTL   time.Duration
 	FrontendURL       string
 	SMTPHost          string
 	SMTPPort          string
@@ -40,6 +43,7 @@ func Load() (Config, error) {
 	if dbURL == "" {
 		return Config{}, fmt.Errorf("DATABASE_URL is required")
 	}
+
 	cfg := Config{DatabaseURL: dbURL, HTTPAddr: addr,
 		JWTPrivateKeyPath: os.Getenv("JWT_PRIVATE_KEY_PATH"),
 		JWTKeyID:          os.Getenv("JWT_KEY_ID"),
@@ -66,5 +70,27 @@ func Load() (Config, error) {
 			return Config{}, fmt.Errorf("%s is required", entry.name)
 		}
 	}
+
+	cfg.AccessTokenTTL, err = loadDuration("ACCESS_TOKEN_TTL")
+	if err != nil {
+		return Config{}, err
+	}
+	cfg.RefreshTokenTTL, err = loadDuration("REFRESH_TOKEN_TTL")
+	if err != nil {
+		return Config{}, err
+	}
 	return cfg, nil
+}
+
+// loadDuration lit une durée obligatoire et strictement positive (ex. "15m", "24h").
+func loadDuration(name string) (time.Duration, error) {
+	value := strings.TrimSpace(os.Getenv(name))
+	if value == "" {
+		return 0, fmt.Errorf("%s is required", name)
+	}
+	d, err := time.ParseDuration(value)
+	if err != nil || d <= 0 {
+		return 0, fmt.Errorf("%s must be a valid positive duration", name)
+	}
+	return d, nil
 }
